@@ -1,117 +1,198 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Mon site</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Bird Fly Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: white;
-      scroll-behavior: smooth;
-    }
+<style>
+  body {
+    margin: 0;
+    background: #70c5ce;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+  }
 
-    /* MENU */
-    nav {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 15px 0;
-      z-index: 1000;
-    }
+  canvas {
+    background: #70c5ce;
+    border-radius: 10px;
+  }
 
-    nav ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-    }
+  .overlay {
+    position: absolute;
+    text-align: center;
+    color: white;
+  }
 
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
-      transition: 0.3s;
-    }
+  .overlay h1 {
+    font-size: 2.5rem;
+  }
 
-    nav a:hover {
-      color: #00d4ff;
-    }
-
-    section {
-      padding: 100px 20px;
-      text-align: center;
-      min-height: 100vh;
-    }
-
-    h1, h2 {
-      margin-bottom: 15px;
-    }
-
-    .btn {
-      display: inline-block;
-      margin-top: 25px;
-      padding: 14px 28px;
-      background: white;
-      color: #203a43;
-      text-decoration: none;
-      border-radius: 30px;
-      font-weight: bold;
-      transition: 0.3s;
-    }
-
-    .btn:hover {
-      transform: scale(1.05);
-      background: #e0e0e0;
-    }
-
-    footer {
-      text-align: center;
-      padding: 20px;
-      opacity: 0.7;
-    }
-  </style>
+  .overlay button {
+    padding: 12px 25px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    margin-top: 15px;
+  }
+</style>
 </head>
 <body>
 
-  <!-- MENU -->
-  <nav>
-    <ul>
-      <li><a href="#accueil">Accueil</a></li>
-      <li><a href="#apropos">À propos</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
-  </nav>
+<canvas id="gameCanvas" width="400" height="600"></canvas>
 
-  <!-- SECTIONS -->
-  <section id="accueil">
-    <h1>Bienvenue 👋</h1>
-    <p>Mon site web moderne sur GitHub Pages</p>
-    <a class="btn" href="#contact">Me contacter</a>
-  </section>
+<div id="startMenu" class="overlay">
+  <h1>🐦 Bird Fly</h1>
+  <button onclick="startGame()">Démarrer</button>
+</div>
 
-  <section id="apropos">
-    <h2>À propos</h2>
-    <p>
-      Je découvre le développement web et je crée mon premier site
-      gratuitement avec GitHub Pages.
-    </p>
-  </section>
+<div id="gameOverMenu" class="overlay" style="display:none;">
+  <h1>💀 Game Over</h1>
+  <p id="finalScore"></p>
+  <button onclick="restartGame()">Rejouer</button>
+</div>
 
-  <section id="contact">
-    <h2>Contact</h2>
-    <p>Email : kennyerger06@email.com</p>
-  </section>
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-  <footer>
-    © 2026 – Mon site GitHub Pages
-  </footer>
+const startMenu = document.getElementById("startMenu");
+const gameOverMenu = document.getElementById("gameOverMenu");
+const finalScoreText = document.getElementById("finalScore");
+
+let gameRunning = false;
+let score = 0;
+
+// Bird
+const bird = {
+  x: 50,
+  y: 200,
+  size: 20,
+  gravity: 0.5,
+  lift: -8,
+  velocity: 0,
+
+  update() {
+    this.velocity += this.gravity;
+    this.y += this.velocity;
+
+    if (this.y + this.size > canvas.height) endGame();
+    if (this.y < 0) this.y = 0;
+  },
+
+  flap() {
+    this.velocity = this.lift;
+  },
+
+  draw() {
+    ctx.fillStyle = "yellow";
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+};
+
+// Pipes
+let pipes = [];
+
+function createPipe() {
+  let gap = 140;
+  let topHeight = Math.random() * 250 + 50;
+
+  pipes.push({
+    x: canvas.width,
+    top: topHeight,
+    bottom: topHeight + gap,
+    width: 50,
+    passed: false
+  });
+}
+
+function updatePipes() {
+  for (let i = pipes.length - 1; i >= 0; i--) {
+    let p = pipes[i];
+    p.x -= 2;
+
+    // collision
+    if (
+      bird.x + bird.size > p.x &&
+      bird.x - bird.size < p.x + p.width &&
+      (bird.y - bird.size < p.top || bird.y + bird.size > p.bottom)
+    ) {
+      endGame();
+    }
+
+    // score
+    if (!p.passed && p.x + p.width < bird.x) {
+      score++;
+      p.passed = true;
+    }
+
+    if (p.x + p.width < 0) pipes.splice(i, 1);
+  }
+}
+
+// Game loop
+let frame = 0;
+
+function update() {
+  if (!gameRunning) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  bird.update();
+  bird.draw();
+
+  if (frame % 120 === 0) createPipe();
+  updatePipes();
+
+  ctx.fillStyle = "green";
+  pipes.forEach(p => {
+    ctx.fillRect(p.x, 0, p.width, p.top);
+    ctx.fillRect(p.x, p.bottom, p.width, canvas.height);
+  });
+
+  // Score
+  ctx.fillStyle = "white";
+  ctx.font = "30px Arial";
+  ctx.fillText(score, canvas.width / 2 - 10, 50);
+
+  frame++;
+  requestAnimationFrame(update);
+}
+
+// Controls
+canvas.addEventListener("click", () => {
+  if (gameRunning) bird.flap();
+});
+
+function startGame() {
+  startMenu.style.display = "none";
+  gameRunning = true;
+  update();
+}
+
+function endGame() {
+  gameRunning = false;
+  finalScoreText.innerText = "Score : " + score;
+  gameOverMenu.style.display = "block";
+}
+
+function restartGame() {
+  gameOverMenu.style.display = "none";
+  score = 0;
+  pipes = [];
+  bird.y = 200;
+  bird.velocity = 0;
+  frame = 0;
+  gameRunning = true;
+  update();
+}
+</script>
 
 </body>
 </html>
