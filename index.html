@@ -2,197 +2,73 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Bird Fly Game</title>
+<title>KEN WEB - Jeux</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
   body {
     margin: 0;
-    background: #70c5ce;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
     font-family: Arial, sans-serif;
-  }
-
-  canvas {
-    background: #70c5ce;
-    border-radius: 10px;
-  }
-
-  .overlay {
-    position: absolute;
-    text-align: center;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     color: white;
+    text-align: center;
   }
 
-  .overlay h1 {
-    font-size: 2.5rem;
+  h1 {
+    margin-top: 40px;
+    font-size: 3rem;
   }
 
-  .overlay button {
-    padding: 12px 25px;
-    font-size: 1rem;
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    margin-top: 15px;
+  .games {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 40px;
+    max-width: 900px;
+    margin: auto;
+  }
+
+  .game {
+    background: rgba(255,255,255,0.1);
+    padding: 30px;
+    border-radius: 15px;
+    transition: 0.3s;
+  }
+
+  .game:hover {
+    transform: scale(1.05);
+    background: rgba(255,255,255,0.2);
+  }
+
+  a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  footer {
+    margin: 30px;
+    opacity: 0.7;
   }
 </style>
 </head>
 <body>
 
-<canvas id="gameCanvas" width="400" height="600"></canvas>
+<h1>🎮 KEN WEB</h1>
+<p>Choisis ton jeu 👇</p>
 
-<div id="startMenu" class="overlay">
-  <h1>🐦 Bird Fly</h1>
-  <button onclick="startGame()">Démarrer</button>
+<div class="games">
+  <div class="game"><a href="games/bird-fly/">🐦 Bird Fly</a></div>
+  <div class="game"><a href="games/runner/">🏃 Runner</a></div>
+  <div class="game"><a href="games/pong/">🏓 Pong</a></div>
+  <div class="game"><a href="games/shooter/">🔫 Shooter</a></div>
+  <div class="game"><a href="games/snake/">🐍 Snake</a></div>
 </div>
 
-<div id="gameOverMenu" class="overlay" style="display:none;">
-  <h1>💀 Game Over</h1>
-  <p id="finalScore"></p>
-  <button onclick="restartGame()">Rejouer</button>
-</div>
-
-<script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-const startMenu = document.getElementById("startMenu");
-const gameOverMenu = document.getElementById("gameOverMenu");
-const finalScoreText = document.getElementById("finalScore");
-
-let gameRunning = false;
-let score = 0;
-
-// Bird
-const bird = {
-  x: 50,
-  y: 200,
-  size: 20,
-  gravity: 0.5,
-  lift: -8,
-  velocity: 0,
-
-  update() {
-    this.velocity += this.gravity;
-    this.y += this.velocity;
-
-    if (this.y + this.size > canvas.height) endGame();
-    if (this.y < 0) this.y = 0;
-  },
-
-  flap() {
-    this.velocity = this.lift;
-  },
-
-  draw() {
-    ctx.fillStyle = "yellow";
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-    ctx.fill();
-  }
-};
-
-// Pipes
-let pipes = [];
-
-function createPipe() {
-  let gap = 140;
-  let topHeight = Math.random() * 250 + 50;
-
-  pipes.push({
-    x: canvas.width,
-    top: topHeight,
-    bottom: topHeight + gap,
-    width: 50,
-    passed: false
-  });
-}
-
-function updatePipes() {
-  for (let i = pipes.length - 1; i >= 0; i--) {
-    let p = pipes[i];
-    p.x -= 2;
-
-    // collision
-    if (
-      bird.x + bird.size > p.x &&
-      bird.x - bird.size < p.x + p.width &&
-      (bird.y - bird.size < p.top || bird.y + bird.size > p.bottom)
-    ) {
-      endGame();
-    }
-
-    // score
-    if (!p.passed && p.x + p.width < bird.x) {
-      score++;
-      p.passed = true;
-    }
-
-    if (p.x + p.width < 0) pipes.splice(i, 1);
-  }
-}
-
-// Game loop
-let frame = 0;
-
-function update() {
-  if (!gameRunning) return;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  bird.update();
-  bird.draw();
-
-  if (frame % 120 === 0) createPipe();
-  updatePipes();
-
-  ctx.fillStyle = "green";
-  pipes.forEach(p => {
-    ctx.fillRect(p.x, 0, p.width, p.top);
-    ctx.fillRect(p.x, p.bottom, p.width, canvas.height);
-  });
-
-  // Score
-  ctx.fillStyle = "white";
-  ctx.font = "30px Arial";
-  ctx.fillText(score, canvas.width / 2 - 10, 50);
-
-  frame++;
-  requestAnimationFrame(update);
-}
-
-// Controls
-canvas.addEventListener("click", () => {
-  if (gameRunning) bird.flap();
-});
-
-function startGame() {
-  startMenu.style.display = "none";
-  gameRunning = true;
-  update();
-}
-
-function endGame() {
-  gameRunning = false;
-  finalScoreText.innerText = "Score : " + score;
-  gameOverMenu.style.display = "block";
-}
-
-function restartGame() {
-  gameOverMenu.style.display = "none";
-  score = 0;
-  pipes = [];
-  bird.y = 200;
-  bird.velocity = 0;
-  frame = 0;
-  gameRunning = true;
-  update();
-}
-</script>
+<footer>
+  © 2026 – KEN WEB
+</footer>
 
 </body>
 </html>
