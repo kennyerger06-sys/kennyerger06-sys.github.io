@@ -11,27 +11,53 @@
       font-family: Arial, Helvetica, sans-serif;
       background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
       color: white;
+      scroll-behavior: smooth;
+    }
+
+    /* MENU */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 15px 0;
+      z-index: 1000;
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      color: #00d4ff;
+    }
+
+    section {
+      padding: 100px 20px;
       text-align: center;
+      min-height: 100vh;
     }
 
-    header {
-      padding: 80px 20px;
-    }
-
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 10px;
-    }
-
-    p {
-      font-size: 1.2rem;
-      opacity: 0.9;
+    h1, h2 {
+      margin-bottom: 15px;
     }
 
     .btn {
       display: inline-block;
-      margin-top: 30px;
-      padding: 15px 30px;
+      margin-top: 25px;
+      padding: 14px 28px;
       background: white;
       color: #203a43;
       text-decoration: none;
@@ -41,28 +67,50 @@
     }
 
     .btn:hover {
-      background: #e0e0e0;
       transform: scale(1.05);
+      background: #e0e0e0;
     }
 
     footer {
-      margin-top: 80px;
+      text-align: center;
       padding: 20px;
-      font-size: 0.9rem;
       opacity: 0.7;
     }
   </style>
 </head>
 <body>
 
-  <header>
+  <!-- MENU -->
+  <nav>
+    <ul>
+      <li><a href="#accueil">Accueil</a></li>
+      <li><a href="#apropos">À propos</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- SECTIONS -->
+  <section id="accueil">
     <h1>Bienvenue 👋</h1>
-    <p>Mon site web moderne hébergé gratuitement sur GitHub Pages</p>
-    <a class="btn" href="#">Me contacter</a>
-  </header>
+    <p>Mon site web moderne sur GitHub Pages</p>
+    <a class="btn" href="#contact">Me contacter</a>
+  </section>
+
+  <section id="apropos">
+    <h2>À propos</h2>
+    <p>
+      Je découvre le développement web et je crée mon premier site
+      gratuitement avec GitHub Pages.
+    </p>
+  </section>
+
+  <section id="contact">
+    <h2>Contact</h2>
+    <p>Email : contact@email.com</p>
+  </section>
 
   <footer>
-    © 2026 – Créé par moi avec GitHub Pages
+    © 2026 – Mon site GitHub Pages
   </footer>
 
 </body>
